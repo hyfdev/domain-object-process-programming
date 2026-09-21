@@ -6,21 +6,33 @@ The aim is to help people understand a program as its implementation grows, incl
 
 ## Adopt DOP
 
-Copy the contents of [DOP.md](./DOP.md) into your project's `AGENTS.md`, preserving the project's existing instructions. The rules apply to every package or crate, including each package or crate in a monorepo.
+Install the setup skill:
 
-[DOP.md](./DOP.md) is the complete, canonical rule block for agents. This README provides an introduction and an example. To update an adopted project, replace its DOP section with the current rule block while preserving other project instructions.
+```sh
+npx skills add hyfdev/domain-object-process-programming --skill dop-setup -g
+```
+
+In your project, ask your agent to use `dop-setup`. The skill installs the complete DOP rules into the root `AGENTS.md`, or an existing `CLAUDE.md` when the project uses that instead. It preserves other instructions and project-specific additions. In a monorepo, run setup once at the workspace root; each package or crate follows DOP within its own source structure.
+
+Agents follow the installed rules during development. Setup changes instructions only; reorganizing an existing codebase is a separate task. To update the rules, update the skill and run `dop-setup` in the project again:
+
+```sh
+npx skills update dop-setup -g
+```
+
+For manual setup, copy the complete [raw DOP rule block](https://raw.githubusercontent.com/hyfdev/domain-object-process-programming/main/skills/dop-setup/assets/DOP.md), including its markers, into your project's `AGENTS.md`. Keep project-specific decisions outside `<!-- DOP:START -->` and `<!-- DOP:END -->`.
 
 ## Concepts
 
 | Concept | Meaning | Examples |
 | --- | --- | --- |
-| Domain | A coherent conceptual area with its own vocabulary of Objects and Processes | Catalog, Checkout, Delivery |
-| Object | A meaningful stateful concept with naturally owned behavior | Product, Cart, Order |
-| Process | An architecture-significant activity, transformation, or orchestration | PlaceOrder, ApplyDiscount, ShipOrder |
+| Domain | A conceptual area of the program | Catalog, Checkout, Delivery |
+| Object | Something that holds state and has naturally owned behavior | Product, Cart, Order |
+| Process | An activity with its own purpose | PlaceOrder, ApplyDiscount, ShipOrder |
 
 Each package or crate represents a root Domain. Within a Domain, `objects/`, `processes/`, and `domains/` contain its Objects, Processes, and Subdomains. Apply the same convention recursively within Subdomains, creating directories as needed.
 
-An Object can have methods, and a Process can use many functions, internal types, and execution state. The classification describes a concept's responsibility in the program. Implementation details stay with the concept they support.
+For example, `Cart.add_item()` belongs to Cart because it updates the cart while maintaining its rules. PlaceOrder is a Process that coordinates the work of placing an order. A helper used only to implement that process stays inside it. [DOP.md](./skills/dop-setup/assets/DOP.md) contains the definitions and placement rules.
 
 ## Example
 
@@ -51,12 +63,6 @@ This example shows an online store package. Checkout owns the concepts involved 
 - Within Checkout, `objects/orders/` groups Order and OrderItem. It does not introduce a Subdomain.
 - `processes/place_order/` implements one Process. Calculating the total and validating items are internal steps in this example.
 - The package's `index.ts` and `fixtures/` follow ordinary source organization and have no automatic DOP role.
-
-## Principles
-
-- **The filesystem represents conceptual ownership.** Give important concepts a clear home, and keep their implementation details there.
-- **Ownership is not dependency.** Domain nesting expresses where concepts belong. Determine dependencies from program responsibilities and actual language or project constraints.
-- **Expose concepts, hide implementation details.** Keep the architectural vocabulary focused on what a reader needs to understand the program.
 
 ## License
 
